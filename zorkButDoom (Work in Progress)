@@ -1,0 +1,163 @@
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <cstring>
+
+void printDivider() {
+    printf("\n------------------------\n\n");
+}
+
+void showOptions(const char* options[], int size) {
+    for (int i = 0; i < size; ++i) {
+        printf("%d. %s\n", i + 1, options[i]);
+    }
+}
+
+void npcDialog() {
+    printf("You encounter an NPC!\n");
+
+    char question[100];
+    printf("Ask the NPC a question or insult them: ");
+    getchar();  // Clear newline from the buffer
+    fgets(question, sizeof(question), stdin);
+
+    if (strstr(question, "insult") || strstr(question, "rude")) {
+        printf("NPC: How rude! I won't talk to you anymore.\n");
+        return;
+    }
+
+    const char* responses[] = {"I don't know.", "Ask someone else.", "It's a secret.", "I'm not sure."};
+    printf("NPC: %s\n", responses[rand() % (sizeof(responses) / sizeof(responses[0]))]);
+}
+
+void combat(int& playerHealth, int& grenadeCount) {
+    printf("An enemy approaches!\n");
+
+    int enemyHealth = rand() % 30 + 1;
+    int enemyAttack = rand() % 15 + 1;
+
+    while (enemyHealth > 0) {
+        printDivider();
+        printf("Enemy Health: %d\n", enemyHealth);
+
+        const char* combatOptions[] = {"Shoot", "Melee", "Throw Grenade"};
+        showOptions(combatOptions, sizeof(combatOptions) / sizeof(combatOptions[0]));
+
+        int choice;
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1: enemyHealth -= rand() % 20 + 1; break;
+            case 2: enemyHealth -= rand() % 15 + 1; break;
+            case 3:
+                if (grenadeCount > 0) {
+                    enemyHealth -= rand() % 30 + 10;
+                    grenadeCount--;
+                } else {
+                    printf("You're out of grenades!\n");
+                    continue;
+                }
+                break;
+            default: printf("Invalid choice!\n"); continue;
+        }
+
+        if (enemyHealth > 0) {
+            printf("The enemy attacks you! You lose %d health.\n", enemyAttack);
+            playerHealth -= enemyAttack;
+        } else {
+            printf("You defeated the enemy!\n");
+
+            if (rand() % 5 == 0) {
+                printf("You found a grenade!\n");
+                grenadeCount++;
+            }
+        }
+    }
+}
+
+void exploration() {
+    printDivider();
+    const char* explorationOptions[] = {"Go left", "Go right", "Inspect surroundings", "Ask NPC"};
+    showOptions(explorationOptions, sizeof(explorationOptions) / sizeof(explorationOptions[0]));
+
+    int explorationChoice;
+    scanf("%d", &explorationChoice);
+
+    switch (explorationChoice) {
+        case 1: printf("You go left and find a dark hallway.\n"); break;
+        case 2: printf("You go right and discover a hidden room.\n"); break;
+        case 3: printf("You inspect the surroundings but find nothing unusual.\n"); break;
+        case 4: npcDialog(); break;
+        default: printf("Invalid choice!\n");
+    }
+}
+
+void bossBattle() {
+    printf("You encounter the Boss!\n");
+
+    int bossHealth = 150;
+    while (bossHealth > 0) {
+        printDivider();
+        printf("Boss Health: %d\n", bossHealth);
+
+        const char* combatOptions[] = {"Shoot", "Melee", "Throw Grenade"};
+        showOptions(combatOptions, sizeof(combatOptions) / sizeof(combatOptions[0]));
+
+        int choice;
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1: bossHealth -= rand() % 20 + 1; break;
+            case 2: bossHealth -= rand() % 15 + 1; break;
+            case 3: bossHealth -= rand() % 30 + 10; break;
+            default: printf("Invalid choice!\n"); continue;
+        }
+
+        if (bossHealth > 0) {
+            printf("The Boss attacks you! You lose %d health.\n", rand() % 20 + 10);
+        }
+    }
+
+    printDivider();
+    printf("You defeated the Boss! Congratulations, you are victorious!\n");
+}
+
+int main() {
+    srand(time(0));
+
+    printf("Welcome to the RPG-like game!\n");
+    printf("You find yourself in a dark corridor.\n");
+
+    int playerHealth = 100;
+    int grenadeCount = 3;
+
+    while (playerHealth > 0) {
+        printDivider();
+        printf("Player Health: %d\n", playerHealth);
+
+        if (rand () % 4 == 0) {
+            npcDialog();
+        } else {
+            combat(playerHealth, grenadeCount);
+        }
+
+        exploration();
+
+        if (rand() % 8 == 0) {
+            printDivider();
+            printf("You move to a new area.\n");
+        }
+
+        if (rand() % 15 == 0) {
+            bossBattle();
+            break;
+        }
+    }
+
+    if (playerHealth <= 0) {
+        printDivider();
+        printf("You have been defeated. Game over.\n");
+    }
+
+    return 0;
+}
