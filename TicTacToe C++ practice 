@@ -1,0 +1,224 @@
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <limits>
+#include <string>
+
+char board[3][3] = {{' ', ' ', ' '}, {' ', ' ', ' '}, {' ', ' ', ' '}};
+int playerWins = 0, playerLosses = 0, computerWins = 0, computerLosses = 0;
+std::string playerSymbol;
+
+// Function to display the Tic-Tac-Toe board
+void displayBoard() {
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            std::cout << board[i][j];
+            if (j < 2) std::cout << " | ";
+        }
+        std::cout << std::endl;
+        if (i < 2) std::cout << "---------" << std::endl;
+    }
+}
+
+// Function to check if a player has won
+bool checkWin(char symbol) {
+    // Check rows and columns
+    for (int i = 0; i < 3; ++i) {
+        if ((board[i][0] == symbol && board[i][1] == symbol && board[i][2] == symbol) ||
+            (board[0][i] == symbol && board[1][i] == symbol && board[2][i] == symbol)) {
+            return true;
+        }
+    }
+
+    // Check diagonals
+    if ((board[0][0] == symbol && board[1][1] == symbol && board[2][2] == symbol) ||
+        (board[0][2] == symbol && board[1][1] == symbol && board[2][0] == symbol)) {
+        return true;
+    }
+
+    return false;
+}
+
+// Function to check if the board is full
+bool isBoardFull() {
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            if (board[i][j] == ' ') {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// Function to get player's move
+void getPlayerMove() {
+    int row, col;
+    while (true) {
+        std::cout << "Please enter your move (row and column): ";
+        std::cin >> row;
+
+        // Validate row input
+        if (std::cin.fail() || row < 1 || row > 3) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid row. Please enter a number between 1 and 3." << std::endl;
+            continue;
+        }
+
+        std::cin >> col;
+
+        // Validate column input
+        if (std::cin.fail() || col < 1 || col > 3 || board[row - 1][col - 1] != ' ') {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid column or cell already taken. Please enter a number between 1 and 3 for an empty cell." << std::endl;
+        } else {
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            board[row - 1][col - 1] = playerSymbol[0];
+            break;
+        }
+    }
+}
+
+// Function to get computer's move with enhanced strategy
+void getComputerMove() {
+    // Check for a winning move
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            if (board[i][j] == ' ') {
+                board[i][j] = (playerSymbol == "X") ? 'O' : 'X';
+                if (checkWin(board[i][j])) {
+                    return;
+                }
+                board[i][j] = ' ';  // Undo the move
+            }
+        }
+    }
+
+    // Check for a blocking move
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            if (board[i][j] == ' ') {
+                board[i][j] = (playerSymbol == "X") ? 'X' : 'O';
+                if (checkWin(board[i][j])) {
+                    board[i][j] = (playerSymbol == "X") ? 'O' : 'X';  // Make the blocking move
+                    return;
+                }
+                board[i][j] = ' ';  // Undo the move
+            }
+        }
+    }
+
+    // Choose a random move if no winning or blocking moves
+    int row, col;
+    do {
+        row = rand() % 3;
+        col = rand() % 3;
+    } while (board[row][col] != ' ');
+
+    board[row][col] = (playerSymbol == "X") ? 'O' : 'X';
+}
+
+// Function to reset the game state
+void resetGame() {
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            board[i][j] = ' ';
+        }
+    }
+}
+
+int main() {
+    srand(static_cast<unsigned int>(time(nullptr)));
+
+    std::string continueGame;
+
+    while (true) {
+        // Choose "X" or "O" for the player
+        while (true) {
+            std::cout << "Choose 'X' or 'O' for your moves: ";
+            std::cin >> playerSymbol;
+
+            // Validate player's choice
+            if (playerSymbol == "X" || playerSymbol == "O") {
+                break;
+            } else {
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cout << "Invalid choice. Please enter 'X' or 'O'." << std::endl;
+            }
+        }
+
+        while (true) {
+            // Display the current state of the board
+            displayBoard();
+
+            // Player's move
+            getPlayerMove();
+
+            // Check if the player wins
+            if (checkWin(playerSymbol[0])) {
+                std::cout << "Congratulations! You win!" << std::endl;
+                playerWins++;
+                computerLosses++;
+                break;
+            }
+
+            // Check if the board is full (tie)
+            if (isBoardFull()) {
+                std::cout << "It's a tie!" << std::endl;
+                break;
+            }
+
+            // Computer's move
+            getComputerMove();
+
+            // Display the updated board
+            displayBoard();
+
+            // Check if the computer wins
+            if (checkWin((playerSymbol == "X") ? 'O' : 'X')) {
+                std::cout << "Computer wins! Better luck next time." << std::endl;
+                computerWins++;
+                playerLosses++;
+                break;
+            }
+
+            // Check if the board is full (tie)
+            if (isBoardFull()) {
+                std::cout << "It's a tie!" << std::endl;
+                break;
+            }
+        }
+
+        // Display the final win/loss counts
+        std::cout << "Player Wins: " << playerWins << " | Player Losses: " << playerLosses << std::endl;
+        std::cout << "Computer Wins: " << computerWins << " | Computer Losses: " << computerLosses << std::endl;
+
+        // Reset the game state for a new round
+        resetGame();
+
+        // Ask if the user wants to play again
+        while (true) {
+            std::cout << "Do you want to play again? (Enter 'Y' for yes or 'N' for no): ";
+            std::cin >> continueGame;
+
+            // Validate user input
+            if (continueGame == "Y" || continueGame == "N") {
+                break;
+            } else {
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cout << "Invalid input. Please enter 'Y' for yes or 'N' for no." << std::endl;
+            }
+        }
+
+        if (continueGame == "N") {
+            std::cout << "Thanks for playing. Game ended." << std::endl;
+            break;
+        }
+    }
+
+    return 0;
+}
