@@ -1,162 +1,233 @@
-#include <cstdio>
-#include <cstdlib>
+#include <iostream>
 #include <ctime>
+#include <cstdlib>
 #include <cstring>
 
 void printDivider() {
-    printf("\n------------------------\n\n");
+    std::cout << "\n------------------------\n\n";
 }
 
 void showOptions(const char* options[], int size) {
     for (int i = 0; i < size; ++i) {
-        printf("%d. %s\n", i + 1, options[i]);
+        std::cout << i + 1 << ". " << options[i] << "\n";
     }
+}
+
+const char* generateDynamicResponse() {
+    const char* dynamicResponses[] = {"I'm feeling great today!", "It's a beautiful day, isn't it?", "Ask me anything, I'm here to help!"};
+    return dynamicResponses[rand() % (sizeof(dynamicResponses) / sizeof(dynamicResponses[0]))];
 }
 
 void npcDialog() {
-    printf("You encounter an NPC!\n");
+    std::cout << "You encounter an NPC!\n";
 
     char question[100];
-    printf("Ask the NPC a question or insult them: ");
-    getchar();  // Clear newline from the buffer
-    fgets(question, sizeof(question), stdin);
+    std::cout << "Ask the NPC a question or insult them: ";
+    std::cin.ignore(); // Ignore newline from previous input
+    std::cin.getline(question, sizeof(question));
 
     if (strstr(question, "insult") || strstr(question, "rude")) {
-        printf("NPC: How rude! I won't talk to you anymore.\n");
-        return;
+        std::cout << "NPC: How rude! I won't talk to you anymore.\n";
+    } else {
+        const char* dynamicResponse = generateDynamicResponse();
+        std::cout << "NPC: " << dynamicResponse << "\n";
     }
-
-    const char* responses[] = {"I don't know.", "Ask someone else.", "It's a secret.", "I'm not sure."};
-    printf("NPC: %s\n", responses[rand() % (sizeof(responses) / sizeof(responses[0]))]);
 }
 
-void combat(int& playerHealth, int& grenadeCount) {
-    printf("An enemy approaches!\n");
+void combat(int& playerHealth, int& grenadeCount, int& ammoCount) {
+    std::cout << "An enemy approaches!\n";
 
     int enemyHealth = rand() % 30 + 1;
     int enemyAttack = rand() % 15 + 1;
 
     while (enemyHealth > 0) {
         printDivider();
-        printf("Enemy Health: %d\n", enemyHealth);
+        std::cout << "Enemy Health: " << enemyHealth << "\n";
 
         const char* combatOptions[] = {"Shoot", "Melee", "Throw Grenade"};
         showOptions(combatOptions, sizeof(combatOptions) / sizeof(combatOptions[0]));
 
         int choice;
-        scanf("%d", &choice);
+        std::cin >> choice;
 
         switch (choice) {
-            case 1: enemyHealth -= rand() % 20 + 1; break;
-            case 2: enemyHealth -= rand() % 15 + 1; break;
-            case 3:
-                if (grenadeCount > 0) {
-                    enemyHealth -= rand() % 30 + 10;
-                    grenadeCount--;
+            case 1:
+                if (ammoCount > 0) {
+                    enemyHealth -= 10; // Gun damage
+                    ammoCount--;
                 } else {
-                    printf("You're out of grenades!\n");
+                    std::cout << "You're out of ammo! Find an ammo pickup.\n";
                     continue;
                 }
                 break;
-            default: printf("Invalid choice!\n"); continue;
+            case 2:
+                enemyHealth -= 4; // Melee damage
+                break;
+            case 3:
+                if (grenadeCount > 0) {
+                    enemyHealth -= 20; // Grenade damage
+                    grenadeCount--;
+                } else {
+                    std::cout << "You're out of grenades!\n";
+                    continue;
+                }
+                break;
+            default:
+                std::cout << "Invalid choice!\n";
+                continue;
         }
 
         if (enemyHealth > 0) {
-            printf("The enemy attacks you! You lose %d health.\n", enemyAttack);
+            std::cout << "The enemy attacks you! You lose " << enemyAttack << " health.\n";
             playerHealth -= enemyAttack;
         } else {
-            printf("You defeated the enemy!\n");
+            std::cout << "You defeated the enemy!\n";
 
+            // Random chance to find ammo or grenade
             if (rand() % 5 == 0) {
-                printf("You found a grenade!\n");
+                std::cout << "You found ammo!\n";
+                ammoCount++;
+            }
+            if (rand() % 5 == 0) {
+                std::cout << "You found a grenade!\n";
                 grenadeCount++;
             }
         }
     }
 }
 
-void exploration() {
+void exploration(int& playerHealth, int& grenadeCount, int& ammoCount) {
     printDivider();
     const char* explorationOptions[] = {"Go left", "Go right", "Inspect surroundings", "Ask NPC"};
     showOptions(explorationOptions, sizeof(explorationOptions) / sizeof(explorationOptions[0]));
 
     int explorationChoice;
-    scanf("%d", &explorationChoice);
+    std::cin >> explorationChoice;
 
     switch (explorationChoice) {
-        case 1: printf("You go left and find a dark hallway.\n"); break;
-        case 2: printf("You go right and discover a hidden room.\n"); break;
-        case 3: printf("You inspect the surroundings but find nothing unusual.\n"); break;
-        case 4: npcDialog(); break;
-        default: printf("Invalid choice!\n");
+        case 1:
+            std::cout << "You enter a dark room.\n";
+            // Random chance of encountering an enemy
+            if (rand() % 3 == 0) {
+                combat(playerHealth, grenadeCount, ammoCount);
+            }
+            // Random chance of finding ammo or grenade
+            if (rand() % 5 == 0) {
+                std::cout << "You found ammo!\n";
+                ammoCount++;
+            }
+            if (rand() % 5 == 0) {
+                std::cout << "You found a grenade!\n";
+                grenadeCount++;
+            }
+            break;
+        case 2:
+            std::cout << "You enter a mysterious room.\n";
+            // Random chance of encountering an enemy
+            if (rand() % 3 == 0) {
+                combat(playerHealth, grenadeCount, ammoCount);
+            }
+            // Random chance of finding ammo or grenade
+            if (rand() % 5 == 0) {
+                std::cout << "You found ammo!\n";
+                ammoCount++;
+            }
+            if (rand() % 5 == 0) {
+                std::cout << "You found a grenade!\n";
+                grenadeCount++;
+            }
+            break;
+        case 3:
+            std::cout << "You inspect the surroundings but find nothing unusual.\n";
+            break;
+        case 4:
+            npcDialog();
+            break;
+        default:
+            std::cout << "Invalid choice!\n";
     }
 }
 
-void bossBattle() {
-    printf("You encounter the Boss!\n");
+void bossBattle(int& ammoCount) {
+    std::cout << "You encounter the Boss!\n";
 
     int bossHealth = 150;
     while (bossHealth > 0) {
         printDivider();
-        printf("Boss Health: %d\n", bossHealth);
+        std::cout << "Boss Health: " << bossHealth << "\n";
 
         const char* combatOptions[] = {"Shoot", "Melee", "Throw Grenade"};
         showOptions(combatOptions, sizeof(combatOptions) / sizeof(combatOptions[0]));
 
         int choice;
-        scanf("%d", &choice);
+        std::cin >> choice;
 
         switch (choice) {
-            case 1: bossHealth -= rand() % 20 + 1; break;
-            case 2: bossHealth -= rand() % 15 + 1; break;
-            case 3: bossHealth -= rand() % 30 + 10; break;
-            default: printf("Invalid choice!\n"); continue;
+            case 1:
+                if (ammoCount > 0) {
+                    bossHealth -= 10; // Gun damage
+                    ammoCount--;
+                } else {
+                    std::cout << "You're out of ammo! Find an ammo pickup.\n";
+                    continue;
+                }
+                break;
+            case 2:
+                bossHealth -= 4; // Melee damage
+                break;
+            case 3:
+                bossHealth -= 20; // Grenade damage
+                break;
+            default:
+                std::cout << "Invalid choice!\n";
+                continue;
         }
 
         if (bossHealth > 0) {
-            printf("The Boss attacks you! You lose %d health.\n", rand() % 20 + 10);
+            std::cout << "The Boss attacks you! You lose " << (rand() % 20 + 10) << " health.\n";
         }
     }
 
     printDivider();
-    printf("You defeated the Boss! Congratulations, you are victorious!\n");
+    std::cout << "You defeated the Boss! Congratulations, you are victorious!\n";
 }
 
 int main() {
     srand(time(0));
 
-    printf("Welcome to the RPG-like game!\n");
-    printf("You find yourself in a dark corridor.\n");
+    std::cout << "Welcome to the RPG-like game!\n";
+    std::cout << "You find yourself in a dark corridor.\n";
 
     int playerHealth = 100;
     int grenadeCount = 3;
+    int ammoCount = 10; // Starting ammo
 
     while (playerHealth > 0) {
         printDivider();
-        printf("Player Health: %d\n", playerHealth);
+        std::cout << "Player Health: " << playerHealth << "\n";
 
-        if (rand () % 4 == 0) {
+        if (rand() % 4 == 0) {
             npcDialog();
         } else {
-            combat(playerHealth, grenadeCount);
+            combat(playerHealth, grenadeCount, ammoCount);
         }
 
-        exploration();
+        exploration(playerHealth, grenadeCount, ammoCount);
 
         if (rand() % 8 == 0) {
             printDivider();
-            printf("You move to a new area.\n");
+            std::cout << "You move to a new area.\n";
         }
 
         if (rand() % 15 == 0) {
-            bossBattle();
+            bossBattle(ammoCount);
             break;
         }
     }
 
     if (playerHealth <= 0) {
         printDivider();
-        printf("You have been defeated. Game over.\n");
+        std::cout << "You have been defeated. Game over.\n";
     }
 
     return 0;
